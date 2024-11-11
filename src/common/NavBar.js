@@ -1,84 +1,76 @@
-import * as React from 'react';
-import InputBase from '@mui/material/InputBase';
-import { ShoppingCart, Search as SearchIcon } from '@mui/icons-material';
-import { AppBar, styled, alpha, Toolbar, Typography, Grid2, Button, Stack, Box } from '@mui/material';
+import { AppBar, Box, Button, Typography, Stack, TextField, InputAdornment } from "@mui/material";
+import ShoppingCart from "@mui/icons-material/ShoppingCart";
+import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logoutSession } from "./redux/actions/loginActions";
+import { useState } from "react";
+import { clearProducts, setProductsView } from "./redux/actions/productActions";
+import { clearAddress } from "./redux/actions/orderActions";
 
-const NavBar = () => {
+const NavBar = ({page, user}) => {
 
-    const Search = styled('div')(({ theme }) => ({
-        position: 'relative',
-        borderRadius: theme.shape.borderRadius,
-        backgroundColor: alpha(theme.palette.common.white, 0.15),
-        '&:hover': {
-            backgroundColor: alpha(theme.palette.common.white, 0.25),
-        },
-        width: '50%',
-        margin: 'auto'
-    }));
-    
-    const SearchIconWrapper = styled('div')(({ theme }) => ({
-        padding: theme.spacing(0, 2),
-        height: '100%',
-        position: 'absolute',
-        pointerEvents: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    }));
-    
-    const StyledInputBase = styled(InputBase)(({ theme }) => ({
-        color: 'inherit',
-        '& .MuiInputBase-input': {
-        padding: theme.spacing(1, 1, 1, 0),
-        // vertical padding + font size from searchIcon
-        paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-        transition: theme.transitions.create('width'),
-        width: '100%',
-        [theme.breakpoints.up('md')]: {
-        width: '20ch',
-        },
-    },
-    }));
-    
-    return <AppBar position='sticky'>
-        <Toolbar>
-            <Box sx={{ flexGrow: 1 }}>
-                <Grid2 container spacing={2} alignItems={'center'}>
-                    <Grid2 size="auto">
-                        <Stack direction='row' spacing={2}>
-                            <ShoppingCart />
-                            <Typography
-                                variant="subtitle1"
-                                noWrap
-                                >
-                                upGrad E-Shop
-                            </Typography>
+    const dispatch = useDispatch();
+
+    const [searchStr, setSearchStr] = useState("");
+
+    const handleSearchItem = (event) => {
+    setSearchStr(event.target.value);
+    dispatch(setProductsView(event.target.value));
+    }
+
+    const handleLogout = () => {
+        dispatch(logoutSession());
+        dispatch(clearProducts());
+        dispatch(clearAddress());
+        window.location.reload();
+    };
+
+    return <>
+      <Box sx={{flexGrow : 1}}>
+        <AppBar position="static" sx={{backgroundColor : "#3f51b5", padding : "16px 28px"}}>
+            <Stack useFlexGap justifyContent="space-between" direction="row" alignItems="center">
+                <Stack useFlexGap direction={"row"}>
+                    <ShoppingCart/>
+                    <Typography variant="body1" sx={{flexGrow : 1, marginLeft : 1}}> upGrad E-Shop </Typography>
+                </Stack>
+                {
+                    (page === "login" || page === "signup")
+                    ? <></>
+                    : <TextField onChange={handleSearchItem} value={searchStr} placeholder="Search" hiddenLabel size="small" sx={{backgroundColor : "rgba(255,255,255,0.2)", borderRadius : "5px", width : "25%"}} InputProps={{
+                        startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchOutlinedIcon sx={{color : "white"}}/>
+                        </InputAdornment>
+                        ), style : {color: 'white', border : 'none'}
+                    }}
+                    variant="filled"
+                  />
+                }
+                {
+                    (page === "login" || page === "signup")
+                        ? 
+                        <Stack useFlexGap direction="row" spacing={3}>
+                        <Link style={{color : "white", fontSize : "0.9rem"}} to="/login">Login</Link>
+                        <Link style={{color : "white", fontSize : "0.9rem"}} to="/signup">Sign up</Link>
                         </Stack>
-                    </Grid2>
-                    <Grid2 size='grow'>
-                        <Search>
-                            <SearchIconWrapper>
-                                <SearchIcon />
-                            </SearchIconWrapper>
-                            <StyledInputBase
-                                placeholder="Search…"
-                                inputProps={{ 'aria-label': 'search' }}
-                            />
-                        </Search>
-                    </Grid2>
-                    <Grid2 size='auto'>
-                        <Stack direction="row" spacing={2} alignItems='center'>
-                            <Typography sx={{textDecoration:'underline'}}>Login</Typography>
-                            <Typography sx={{textDecoration:'underline'}}>Sign Up</Typography>
-                            <Typography sx={{textDecoration:'underline'}}>Home</Typography>
-                            <Typography sx={{textDecoration:'underline'}}>Add Product</Typography>
-                            <Button variant="contained" color='error'>LOGOUT</Button>
-                        </Stack>
-                    </Grid2>
-                </Grid2>
-            </Box>
-        </Toolbar>
-  </AppBar>
-}
+                        : 
+                        (user === "admin") ?
+                            <Stack useFlexGap direction="row" alignItems="center" spacing={3}> 
+                            <Link style={{color : "white", fontSize : "0.9rem"}} to="/products">Home</Link>
+                            <Link style={{color : "white", fontSize : "0.9rem"}} to="/products/add">Add product</Link>
+                            <Button onClick={handleLogout} variant="contained" color="error">LOGOUT</Button>
+                            </Stack> 
+                            :
+                            <Stack useFlexGap direction="row" alignItems="center" spacing={3}> 
+                            <Link style={{color : "white", fontSize : "0.9rem"}} to="/products">Home</Link>
+                            <Button onClick={handleLogout} variant="contained" color="error">LOGOUT</Button>
+                            </Stack> 
+                }
+            </Stack>
+        </AppBar>
+      </Box>
+    </>
+};
 
 export default NavBar;
